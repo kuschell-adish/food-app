@@ -1,101 +1,49 @@
-import Image from "next/image";
+'use client'; 
+import { useRouter } from 'next/navigation';
+import { useState } from 'react'; 
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const router = useRouter();
+  const [isSliding, setIsSliding] = useState(false); 
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const images = {
+    'landing' : 'https://images.unsplash.com/photo-1610441009633-b6ca9c6d4be2?q=80&w=2600&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', 
+    'logo' : 'https://images.unsplash.com/vector-1739809596425-35fa340f2ab0?q=80&w=2960&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+  }; 
+
+  const handleButtonClick = (e) => {
+    e.preventDefault();
+    setIsSliding(true); 
+    setTimeout(() => {
+      router.push('/steps'); 
+    }, 500);
+  };
+
+  return (
+    <div className={`w-full h-screen flex flex-col sm:flex-row overflow-x-auto sm:overflow-x-hidden transition-all duration-300 ease-out ${isSliding ? '-translate-x-full' : ''}`}>
+      <div className="w-full sm:w-1/2">
+        <img src={images.landing} alt="landing" className="w-full h-full object-cover" />
+      </div>
+      <div className="w-full sm:w-1/2 bg-custom-red text-white flex flex-col gap-y-2 p-10 justify-center">
+        <div className="flex flex-row gap-x-1 items-center">
+          <img src={images.logo} alt="logo" className="h-8" />
+          <p className="font-semibold text-custom-yellow text-base md:text-lg tracking-wide">acai bowl co.</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <p className="font-light text-justify sm:text-xs md:text-base">Create your perfect acai bowl with endless customization options! Start with a base like acai, pitaya, or coconut, then add fresh fruits, crunchy granola, honey, nut butter, and more. Whether you're craving something sweet, savory, or healthy, the possibilities are limitless. With a focus on fresh, high-quality ingredients, you can build a bowl that suits your dietary preferences, including vegan and gluten-free options. It’s all about 
+          <span className="font-semibold text-custom-yellow"> “your bowl, your way” </span>—a delicious, personalized treat that's as unique as you are!
+        </p>
+        <button onClick={handleButtonClick} className="mt-10 group p-5 cursor-pointer relative border-0 flex items-center justify-center bg-transparent text-custom-yellow h-auto w-full overflow-hidden transition-all duration-100">
+          <span className="group-hover:w-full absolute left-0 h-full w-5 border-y border-l border-white transition-all duration-500" />
+          <p className="font-semibold group-hover:opacity-0 group-hover:translate-x-[-100%] absolute translate-x-0 transition-all duration-200">Ready to Create? </p>
+          <div className="flex flex-row gap-x-2 items-center group-hover:translate-x-0  group-hover:opacity-100 absolute translate-x-full opacity-0  transition-all duration-200">
+            <span className="font-semibold">Begin Crafting</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="3" stroke="currentColor" className="size-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+            </svg>
+          </div>
+          <span className="group-hover:w-full absolute right-0 h-full w-5  border-y border-r  border-white transition-all duration-500" />
+        </button>
+      </div>
     </div>
   );
 }
