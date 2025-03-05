@@ -16,7 +16,7 @@ export default function Home() {
     setIsSliding(true); 
     setTimeout(() => {
       router.push('/steps'); 
-    }, 500);
+    }, 300);
   };
 
   return (
@@ -27,12 +27,12 @@ export default function Home() {
       <div className="w-full sm:w-1/2 bg-custom-red text-white flex flex-col gap-y-2 p-10 justify-center">
         <div className="flex flex-row gap-x-1 items-center">
           <img src={images.logo} alt="logo" className="h-8" />
-          <p className="font-semibold text-custom-yellow text-base md:text-lg tracking-wide">acai bowl co.</p>
+          <p className="font-semibold text-custom-yellow text-sm md:text-lg tracking-wide">acai bowl co.</p>
         </div>
-        <p className="font-light text-justify sm:text-xs md:text-base">Create your perfect acai bowl with endless customization options! Start with a base like acai, pitaya, or coconut, then add fresh fruits, crunchy granola, honey, nut butter, and more. Whether you're craving something sweet, savory, or healthy, the possibilities are limitless. With a focus on fresh, high-quality ingredients, you can build a bowl that suits your dietary preferences, including vegan and gluten-free options. It’s all about 
+        <p className="text-justify mt-2 sm:text-xs md:text-sm">Create your perfect acai bowl with endless customization options! Start with a base like acai, pitaya, or coconut, then add fresh fruits, crunchy granola, honey, nut butter, and more. Whether you're craving something sweet, savory, or healthy, the possibilities are limitless. With a focus on fresh, high-quality ingredients, you can build a bowl that suits your dietary preferences, including vegan and gluten-free options. It’s all about 
           <span className="font-semibold text-custom-yellow"> “your bowl, your way” </span>—a delicious, personalized treat that's as unique as you are!
         </p>
-        <button onClick={handleButtonClick} className="mt-10 group p-5 cursor-pointer relative border-0 flex items-center justify-center bg-transparent text-custom-yellow h-auto w-full overflow-hidden transition-all duration-100">
+        <button onClick={handleButtonClick} className="text-sm mt-5 group p-5 cursor-pointer relative border-0 flex items-center justify-center bg-transparent text-custom-yellow h-auto w-full overflow-hidden transition-all duration-100">
           <span className="group-hover:w-full absolute left-0 h-full w-5 border-y border-l border-white transition-all duration-500" />
           <p className="font-semibold group-hover:opacity-0 group-hover:translate-x-[-100%] absolute translate-x-0 transition-all duration-200">Ready to Create? </p>
           <div className="flex flex-row gap-x-2 items-center group-hover:translate-x-0  group-hover:opacity-100 absolute translate-x-full opacity-0  transition-all duration-200">
