@@ -2,6 +2,8 @@
 
 import React, {useState} from 'react'; 
 import { useRouter } from 'next/navigation';
+import { format } from 'date-fns';
+import axios from 'axios';
 
 import Stepper from '../components/stepper';
 import Button from '../components/button';
@@ -54,14 +56,48 @@ export default function Page() {
     const [isPreviousClicked, setIsPreviousClicked] = useState(false); 
     const [isConfirmClicked, setIsConfirmClicked] = useState(false); 
 
-    const handleConfirm = (e) => {
+    const date = new Date();
+    const formattedDate = format(date, 'MMMM dd, yyyy hh:mm a');
+
+    const generateOrderNumber = () => {
+        return Math.floor(Math.random() * 900) + 100;
+    };
+    const orderNumber = generateOrderNumber();
+    
+    const orderData = {
+        orderNumber: orderNumber,
+        size: name, 
+        toppings: selectedToppings,
+        price: price,
+        date: formattedDate
+    }
+
+    const handleConfirm = async(e) => {
         e.preventDefault();
         setIsConfirmClicked(true); 
-        setTimeout(() => {
-          router.push('/steps/confirm'); 
-          setIsConfirmClicked(false); 
-        }, 300);
+
+        try {
+            const response = await axios.post('/api/orders', orderData, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (response.status === 201) { 
+                console.log("successful", response.data);
+    
+                setTimeout(() => {
+                    router.push(`/steps/confirm?orderNumber=${orderNumber}`);
+                    setIsConfirmClicked(false); 
+                }, 300);
+            } else {
+                console.log("error posting data:", response.data.error);
+                setIsConfirmClicked(false); 
+            }
+        } catch (err) {
+            console.log("error posting data:", err.message);
+        }
       };
+    
 
   return (  
     <div className={`w-full max-h-screen overflow-hidden align-center p-10 transition-all duration-300 ease-in-out ${isConfirmClicked && '-translate-x-full'}`}>
