@@ -1,10 +1,20 @@
 'use client'; 
 
-import React from 'react'; 
+import React, {useState, useEffect} from 'react'; 
+import { useSearchParams } from 'next/navigation';
 
 import { FaCheckCircle } from "react-icons/fa";
 
 export default function Page() {
+  const searchParams = useSearchParams();
+  const [orderNumber, setOrderNumber] = useState(null);
+
+  useEffect(() => {
+    const orderNumberParam = searchParams.get('orderNumber');
+    if (orderNumberParam) {
+      setOrderNumber(orderNumberParam);
+    }
+  }, [searchParams]);
 
   return (  
     <div className="p-5 min-h-screen flex flex-col justify-center text-sm">
@@ -18,15 +28,14 @@ export default function Page() {
             acai bowl co.
             </p>
         </div>
-  
-        <div className="flex flex-col gap-y-2 items-center justify-center flex-grow">
-            <FaCheckCircle className="w-28 h-28 text-custom-red animate-bounce" />
-            <p className="font-semibold text-base">Thank you for your order!</p>
-            <p>
-            Kindly show <span className="text-custom-red font-semibold">#0000</span> to the server for your order number.
-            </p>
-        </div>
-</div>
+      <div className="flex flex-col gap-y-2 items-center justify-center flex-grow">
+        <FaCheckCircle className="w-28 h-28 text-custom-red animate-bounce" />
+        <p className="font-semibold text-base">Thank you for your order!</p>
+        <p>
+          Kindly show <span className="text-custom-red font-semibold">#{orderNumber}</span> to the server for your order number.
+        </p>
+      </div>
+  </div>
 
   );
 }
