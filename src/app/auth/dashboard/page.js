@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { supabase } from '@/app/lib/supabaseClient';
 
 import Button from '@/app/components/button';
 
@@ -16,25 +16,34 @@ export default function Home() {
   const tabMenus = ["All Orders", "Completed", "Cancelled"]; 
 
   useEffect(() => {
-    const fetchOrders = async () => {
-        try {
-            const response = await axios.get('/api/orders', {method: 'GET'});
-            setOrders(Object.values(response.data));  
-        } catch (err) {
-            console.log("error fetching data", err.message);
+    async function fetchOrders() {
+        let { data, error } = await supabase
+          .from("orders")
+          .select(`
+              *,
+              sizes(
+                name
+              ), 
+              order_toppings(
+                *,
+                toppings(
+                  name
+                )
+              )
+          `);
+
+        if (error) 
+        {
+            console.error(error);
+        } else 
+        {
+            setOrders(data); 
         }
-    };
+    }
     fetchOrders();
+}, []);
 
-    //reaches free tier limit 
-    // const intervalId = setInterval(() => {
-    //   fetchOrders();
-    // }, 5000);
-
-    // return () => clearInterval(intervalId);
-  }, []);
-
-  console.log(orders); 
+console.log("orders", orders);
 
   return (
     <div className="p-5">
@@ -48,6 +57,7 @@ export default function Home() {
             acai bowl co.
             </p>
       </div>
+      <p>Logout</p>
       <div className="mb-4">
         <ul className="flex flex-wrap -mb-px text-sm font-medium text-center">
           {tabMenus.map((tab,index) => (
@@ -79,23 +89,23 @@ export default function Home() {
               role="tabpanel"
             >
               <div className="flex flex-row justify-between mb-4">
-                <p className="font-semibold text-custom-red">#{order.orderNumber}</p>
+                <p className="font-semibold text-custom-red">#{order.id}</p>
                 <p className="text-gray-500 text-xs">{order.date}</p>
               </div>
               <div className="flex flex-col flex-1 mb-4">
-                <p>{order.size} Acai Bowl</p>
+                <p className="capitalize">{order.sizes.name} Acai Bowl</p>
                 <ul className="list-disc pl-5">
-                  {order.toppings?.map((topping, index) => (
-                    <li key={index}>{topping.name}</li>
+                  {order.order_toppings?.map((item, index) => (
+                    <li key={index} className="capitalize">{item.toppings.name}</li>
                   ))}
                 </ul>
               </div>
               <div className="flex flex-row justify-between mt-auto">
                 <Button 
-                label={order.status === "pending" ? "Mark as Cancelled" : "Cancelled"}
+                label={order.status_id === 1 ? "Mark as Cancelled" : "Cancelled"}
                 className="text-xs bg-gray-500 hover:bg-gray-600"/>
                 <Button 
-                label={order.status === "pending" ? "Mark as Completed" : "Completed"}
+                label={order.status_id === 1 ? "Mark as Completed" : "Completed"}
                 className="text-xs bg-green-700 hover:bg-green-800" />
               </div>
             </div>

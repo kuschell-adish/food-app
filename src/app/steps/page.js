@@ -2,8 +2,6 @@
 
 import React, {useState} from 'react'; 
 import { useRouter } from 'next/navigation';
-import { format } from 'date-fns';
-import axios from 'axios';
 
 import Stepper from '../components/stepper';
 import Button from '../components/button';
@@ -11,19 +9,14 @@ import Button from '../components/button';
 import Size from './size/page';
 import Topping from './topping/page';
 import Order from './order/page';
+import { supabase } from '../lib/supabaseClient';
 
 export default function Page() {
 
     const router = useRouter();
-
     const [size, setSize] = useState(null);
-    const [name, setName] = useState(null);
-    const [price, setPrice] = useState(0);
-
-    const [toppings, setToppings] = useState(0);
-    const [toppingSet, setToppingSet] = useState(false);
     const [selectedToppings, setSelectedToppings] = useState([]);
-
+    const [toppingsValue, setToppingsValue] = useState([]);
     const [activeStep, setActiveStep] = useState(1); 
     const handleNext = () => {
         setIsNextClicked(true); 
@@ -49,92 +42,91 @@ export default function Page() {
     }
 
     const isToppingButtonDisabled = () => {
-        return selectedToppings.length === 0; 
+        return toppingsValue === false; 
     }
 
     const [isNextClicked, setIsNextClicked] = useState(false); 
     const [isPreviousClicked, setIsPreviousClicked] = useState(false); 
     const [isConfirmClicked, setIsConfirmClicked] = useState(false); 
 
-    const date = new Date();
-    const formattedDate = format(date, 'MMMM dd, yyyy hh:mm a');
-
-    const generateOrderNumber = () => {
-        return Math.floor(Math.random() * 900) + 100;
-    };
-    const orderNumber = generateOrderNumber();
-    
-    const orderData = {
-        orderNumber: orderNumber,
-        size: name, 
-        toppings: selectedToppings,
-        price: price,
-        date: formattedDate
-    }
-
     const handleConfirm = async(e) => {
         e.preventDefault();
         setIsConfirmClicked(true); 
 
         try {
-            const response = await axios.post('/api/orders', orderData, {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            if (response.status === 201) { 
-                console.log("successful", response.data);
-    
-                setTimeout(() => {
-                    router.push(`/steps/confirm?orderNumber=${orderNumber}`);
-                    setIsConfirmClicked(false); 
-                }, 300);
-            } else {
-                console.log("error posting data:", response.data.error);
+            const { data: orderData, error: orderError } = await supabase 
+                .from('orders')
+                .insert([{
+                    size_id: size?.id,
+                    status_id: 1, }]) //pending
+                .select()
+                .single(); 
+            
+            if (orderError) throw orderError;
+
+            const orderId = orderData.id; 
+
+            const toppingsData = selectedToppings.map(topping => ({
+                order_id: orderId, 
+                topping_id: topping.id
+            })); 
+
+            const { error: toppingsError } = await supabase 
+                .from('order_toppings')
+                .insert(toppingsData);
+            
+            if (toppingsError) throw toppingsError;
+
+            console.log("successful"); 
+
+            setTimeout(() => {
+                router.push(`/steps/confirm?orderNumber=1`);
                 setIsConfirmClicked(false); 
-            }
-        } catch (err) {
-            console.log("error posting data:", err.message);
+            }, 300);
         }
-      };
-    
+        catch(err) {
+            console.error("Error:", err);
+            setIsConfirmClicked(false); 
+        }
+    }
 
   return (  
-    <div className={`w-full max-h-screen overflow-hidden align-center p-10 transition-all duration-300 ease-in-out ${isConfirmClicked && '-translate-x-full'}`}>
-       <Stepper 
-            selectedSize={size} 
-            sizeName={name}
-            activeStep = {activeStep}
-            setActiveStep = {setActiveStep}
-            toppingSet={toppingSet}
-
-      />
-        <div className={`w-full max-h-[80vh] sm:max-h-[70vh] overflow-y-auto transition-all duration-300 ease-in-out ${isNextClicked && '-translate-x-full'} ${isPreviousClicked && 'translate-x-full'}`}>
+    <div className={`w-full h-screen sm:p-10 p-7 flex flex-col transition-all duration-300 ease-in-out`}>
+       <div className="mb-5">
+            <Stepper 
+                selectedSize={size} 
+                activeStep={activeStep}
+                setActiveStep={setActiveStep}
+                selectedToppings={selectedToppings}
+                toppingState = {toppingsValue}
+            />  
+        </div>
+        <div className={`flex-1 overflow-y-auto px-4 transition-all duration-300 ease-in-out ${isNextClicked && '-translate-x-full'} ${isPreviousClicked && 'translate-x-full'}`}>
         {activeStep === 1 ? (
             <Size
-                setSize={setSize} 
-                setName = {setName}
-                setPrice = {setPrice}
-                setToppings = {setToppings}
-                selectedSize = {size}
+                selectedSize={size}
+                setSelectedSize = {setSize}
             />
         ): activeStep === 2 ? (
             <Topping
-                toppingsCount={toppings}
-                setEqualValue = {setToppingSet} 
+                toppingsCount={size?.toppings_allowed}
                 selectedToppings = {selectedToppings}
                 setSelectedToppings = {setSelectedToppings}
+                toppingState = {toppingsValue}
+                setToppingState= {setToppingsValue}
             />
         ) : (
             <Order 
-                sizeSelectedName = {name}
+                sizeSelectedName = {size?.name}
                 toppingsSelectedNames = {selectedToppings} 
-                totalPrice = {price}/>
+                totalPrice = {size?.price}
+            />
         )}
         </div>
-
+        
+        <div className="p-4">
         {activeStep === 1 ? (
-            <div className="w-full flex flex-row justify-end">
+            <div className="w-full flex justify-end">
                 <Button
                     label="Next"
                     onClick={handleNext}
@@ -161,6 +153,7 @@ export default function Page() {
                 )}
             </div>
         )}
+        </div>
     </div>
   );
 }

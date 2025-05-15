@@ -1,9 +1,9 @@
 'use client'; 
 
-import React, {useState, useEffect, act } from 'react'; 
+import React, {useState, useEffect } from 'react'; 
 import { IoIosCheckmarkCircle } from "react-icons/io";
 
-export default function Stepper({activeStep, selectedSize, sizeName, toppingSet }) {
+export default function Stepper({activeStep, selectedSize, selectedToppings, toppingState}) {
     const [doneStep, setDoneStep] = useState([]); 
 
     const steps = [
@@ -15,20 +15,23 @@ export default function Stepper({activeStep, selectedSize, sizeName, toppingSet 
     useEffect(() => {
         setDoneStep(prev => {
             let newDoneStep = [...prev]; 
-            if (selectedSize !== null && sizeName !== null) {
+            if (selectedSize !== null) {
                 if (!newDoneStep.includes(1)) {
                     newDoneStep.push(1);
                 }
             }
-            if (toppingSet === true && !newDoneStep.includes(2)) {
+            if (toppingState === true && !newDoneStep.includes(2)) {
                 newDoneStep.push(2);
+            }
+            if (toppingState === false && newDoneStep.includes(2)) {
+                newDoneStep = newDoneStep.filter(step => step !== 2)
             }
             return newDoneStep; 
         });
-    }, [selectedSize, sizeName, toppingSet]);
+    }, [selectedSize, toppingState]);
 
     return (
-        <ol className="flex items-center w-full text-gray-500 text-sm">
+        <ol className="flex justify-center items-center w-full text-gray-500 text-sm">
             {steps.map((step) => (
                 <li
                     key={step.number}

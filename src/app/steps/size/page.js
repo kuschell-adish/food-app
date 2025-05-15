@@ -1,62 +1,72 @@
 'use client'; 
 
-import React from 'react'; 
+import React, {useState, useEffect} from 'react'; 
+import { supabase } from '@/app/lib/supabaseClient';
 import { LuNut } from "react-icons/lu";
 
-export default function Size({setSize, setName, setPrice, setToppings, selectedSize}) {
-    const foodSizes = [
-        {
-            size: 'Small', 
-            description: 'Perfect for light, healthy snack!', 
-            price: 150,
-            recipe: [
-                'one scoop of acai base',
-                'three fresh toppings',
-                'one drizzle of peanut butter'
-            ],
-            toppings: 3
-        },
-        {
-            size: 'Medium', 
-            description: 'A satisfying and energizing option!', 
-            price: 250,
-            recipe: [
-                'two scoops of acai base',
-                'four fresh toppings',
-                'one drizzle of peanut butter'
-            ],
-            toppings: 4
-        },
-        {
-            size: 'Large', 
-            description: 'For the ultimate acai indulgence!', 
-            price: 350,
-            recipe: [
-                'three scoops of acai base',
-                'five fresh toppings',
-                'one drizzle of peanut butter'
-            ],
-            toppings: 5
-        },
-    ]
+export default function Size({selectedSize, setSelectedSize}) {
+    const [sizes, setSizes] = useState([]); 
 
-    const handleSizeClick = (index) => {
-        setSize(index);
-        setName(foodSizes[index].size); 
-        setPrice(foodSizes[index].price); 
-        setToppings(foodSizes[index].toppings);
+    const staticDescriptions = {
+        small: 'Perfect for light, healthy snack!',
+        medium: 'A satisfying and energizing option!',
+        large: 'For the ultimate acai indulgence!',
+    };
+
+    const staticRecipes = {
+        small: [
+          'one scoop of acai base',
+          'three fresh toppings',
+          'one drizzle of peanut butter',
+        ],
+        medium: [
+          'two scoops of acai base',
+          'four fresh toppings',
+          'one drizzle of peanut butter',
+        ],
+        large: [
+          'three scoops of acai base',
+          'five fresh toppings',
+          'one drizzle of peanut butter',
+        ],
+      };
+    
+    useEffect(() => {
+        async function fetchSizes() {
+            let { data, error } = await supabase.from("sizes").select("*");
+
+            if (error) 
+            {
+                console.error(error);
+            } 
+            else 
+            {
+                const sizes = data.map((size) => ({
+                    ...size,
+                    description: staticDescriptions[size.name],
+                    recipe: staticRecipes[size.name],
+                }));
+                setSizes(sizes); 
+            }
+        }
+        fetchSizes();
+
+      }, []);
+
+    const handleSizeClick = (size) => {
+        setSelectedSize(size); 
     }
 
   return (  
     <div>
         <div className={`grid grid-cols-1 gap-4 text-sm mt-5 sm:grid-cols-3`}>
-            {foodSizes.map((food, index) => (
+            {sizes.map((item, index) => (
                     <div key={index}
                         className={`cursor-pointer rounded-lg transform transition-transform duration-300 
                             ${index !== 0 && 'overflow-hidden'}
-                            ${index === selectedSize ? 'border-2 border-custom-yellow' : 'hover:border border-custom-yellow'}
+                            ${item.id === selectedSize?.id ? 'border-2 border-custom-yellow' : 'hover:border border-custom-yellow'}
                         `}
-                        onClick={() => handleSizeClick(index)}
+                        onClick={() => handleSizeClick(item)}
                     >
                         <div className="overflow-hidden">
                             <img 
@@ -66,11 +76,11 @@ export default function Size({setSize, setName, setPrice, setToppings, selectedS
                             />
                         </div>
                         <div className={`p-4`}>
-                            <p className="font-semibold">{food.size} Acai Bowl</p>
-                            <p className="font-light italic text-sm">{food.description}</p>
-                            <p className="font-semibold text-custom-red mb-4">PHP {food.price.toFixed(2)}</p>
+                            <p className="font-semibold capitalize">{item.name} Acai Bowl</p>
+                            <p className="font-light italic text-sm">{item.description}</p>
+                            <p className="font-semibold text-custom-red mb-4">PHP {item.price.toFixed(2)}</p>
                             <p className="font-semibold">Includes:</p>
-                            {food.recipe.map((ingredient, index) => (
+                            {item.recipe.map((ingredient, index) => (
                                 <p key={index} className="flex items-center space-x-1"><LuNut /> <span>{ingredient}</span></p>
                             ))}
                         </div>

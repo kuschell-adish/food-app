@@ -3,17 +3,15 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
- 
-import { auth } from "@/app/lib/firebaseConfig";
-import { signInWithEmailAndPassword, setPersistence, browserSessionPersistence } from "@firebase/auth";
 
 import Button from "@/app/components/button";
 import { MdError } from "react-icons/md";
 
+import { handleLogin } from "../../../app/api/auth/signInWithPassword"; 
+
 export default function Page() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [rememberMe, setRememberMe] = useState(false); 
     const [error, setError] = useState("");
     const [showError, setShowError] = useState(false);
 
@@ -21,37 +19,18 @@ export default function Page() {
 
     const handleSubmit = async(e) => {
         e.preventDefault();
-        try {
-            //remember me checked
-            if (rememberMe) {
-                await setPersistence(auth, browserSessionPersistence); 
-            }
+        const result = await handleLogin(email, password);
 
-            //login
-            await signInWithEmailAndPassword(auth, email, password);
-
-            //console user object
-            auth.onAuthStateChanged((user) => {
-                if (user) {
-                  console.log("user object:", user);
-                  router.push('/auth/dashboard');
-                } else {
-                  console.log("no user");
-                }
-              });
+        if (result.success === true ) {
+            router.push(`/auth/dashboard`);
         }
-        catch(err) {
-            if (err.code === 'auth/invalid-credential' ) {
-                setError("Invalid credentials.");
-            }
-            else {
-                console.error("error logging in:", err);
-                setError("An error occurred. Please try again.");
-            }
+        else {
+            console.error("error logging in:", result.message);
+            setError(result.message)
         }
     };
 
-    console.log(rememberMe); 
+    console.log(error); 
 
     useEffect(() => {
         if (error != "") {
@@ -88,7 +67,7 @@ export default function Page() {
                     <h1 className="text-lg text-custom-red font-bold leading-tight tracking-tight mb-7">
                         Sign in to your account
                     </h1>
-                    <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
+                    <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit} >
                         <div>
                             <label htmlFor="email" className="block mb-2 font-semibold">Email</label>
                             <input 
@@ -114,23 +93,13 @@ export default function Page() {
                                 placeholder="Enter your password" 
                                 required
                             />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                                <input 
-                                    id="remember" 
-                                    type="checkbox" 
-                                    checked={rememberMe}
-                                    onChange={() => setRememberMe(!rememberMe)}
-                                    className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300"
-                                />
-                                <label htmlFor="remember" className="ml-2">Remember me</label>
+                             <div className="flex justify-end mt-2">
+                                <Link href="/auth/forgotPassword">
+                                    <p className="font-medium text-custom-red hover:underline">
+                                        Forgot password?
+                                    </p>
+                                </Link>
                             </div>
-                            <Link href="/auth/forgotPassword">
-                                <p className="font-medium text-custom-red hover:underline">
-                                    Forgot password?
-                                </p>
-                            </Link>
                         </div>
 
                         <Button 

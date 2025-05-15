@@ -6,18 +6,30 @@ import { useRouter } from 'next/navigation';
 import Button from "@/app/components/button";
 import { MdError } from "react-icons/md";
 
-import { handleForgotPassword } from "../../../app/api/auth/forgotPassword"; 
+import { handleChangePassword } from "../../../app/api/auth/changePassword"; 
+import { useSearchParams } from 'next/navigation';
+
 
 export default function Page() {
-    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [showError, setShowError] = useState(false);
 
     const router = useRouter();
 
+    const searchParams = useSearchParams();
+    const [token, setToken] = useState("");
+
+    useEffect(() => {
+        const accessToken = searchParams.get('access_token');
+        if (accessToken) {
+          setToken(accessToken);
+        }
+      }, [searchParams]);
+
     const handleSubmit = async(e) => {
         e.preventDefault();
-        const result = await handleForgotPassword(email);
+        const result = await handleChangePassword(password);
 
         if (result.success === true) {
             router.push(`/auth/emailSent`);
@@ -27,6 +39,8 @@ export default function Page() {
             setError(result.message)
         }
     };
+
+    console.log("token", token);
 
     useEffect(() => {
         if (error != "") {
@@ -50,25 +64,25 @@ export default function Page() {
                 </div>)}
                 <div className="w-full bg-white rounded-lg shadow-lg p-6 sm:p-8">
                     <h1 className="text-lg text-custom-red font-bold leading-tight tracking-tight mb-7">
-                        Reset your password
+                        Update your password
                     </h1>
                     <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
                         <div>
-                            <label htmlFor="email" className="block mb-2 font-semibold">Email</label>
+                            <label htmlFor="password" className="block mb-2 font-semibold">New Password</label>
                             <input 
-                                type="email" 
-                                name="email" 
-                                id="email" 
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                type="password" 
+                                name="password" 
+                                id="password" 
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 className="bg-gray-50 border border-gray-300 rounded-lg block w-full p-2.5" 
-                                placeholder="Enter your email" 
+                                placeholder="Enter your new password" 
                                 required
                             />
                         </div>
                         <Button 
                             type="submit"
-                            label="Send Reset Link" 
+                            label="Update Password" 
                             className="w-full"
                         />
                     </form>
