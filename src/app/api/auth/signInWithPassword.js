@@ -7,10 +7,7 @@ export async function handleLogin(email, password) {
     });
 
     if (error) {
-        console.error("error logging in", error.message); 
         return { success: false, message: error.message };
     }
-
-    console.log("sucessful logging in", data);
     return { success: true, user: data.user };
 }

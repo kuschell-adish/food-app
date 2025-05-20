@@ -80,7 +80,7 @@ export default function Page() {
             console.log("successful"); 
 
             setTimeout(() => {
-                router.push(`/steps/confirm?orderNumber=1`);
+                router.push(`/steps/confirm?orderNumber=${orderId}`);
                 setIsConfirmClicked(false); 
             }, 300);
         }

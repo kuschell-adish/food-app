@@ -3,7 +3,7 @@
 import React, {useState, useEffect } from 'react'; 
 import { IoIosCheckmarkCircle } from "react-icons/io";
 
-export default function Stepper({activeStep, selectedSize, selectedToppings, toppingState}) {
+export default function Stepper({activeStep, selectedSize, toppingState}) {
     const [doneStep, setDoneStep] = useState([]); 
 
     const steps = [

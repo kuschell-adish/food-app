@@ -1,14 +1,8 @@
 import { supabase } from "@/app/lib/supabaseClient";
 
-export async function handleChangePassword(password, token) {
-
-    if(!password || !token) {
-      return { success: false, message: "password and token are required" };
-    }
-
+export async function handleChangePassword(password) {
     try {
-      const { data, error } = await supabase.auth.api
-        .updateUser(token, {password}); 
+      const { error } = await supabase.auth.updateUser({password}); 
       
       if (error) {
         return { success: false, message: error.message };

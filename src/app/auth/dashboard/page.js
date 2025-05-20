@@ -2,62 +2,179 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
+import { useRouter } from 'next/navigation';
+import Card from '@/app/components/card';
 
-import Button from '@/app/components/button';
+import { handleLogout } from "@/app/api/auth/signOut"; 
+import useOrdersRealtime from '@/app/hooks/ordersRealtime';
 
 export default function Home() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("All Orders");
+  const [loading, setLoading] = useState(true)
   const [orders, setOrders] = useState([]);
+  const [completedOrders, setCompletedOrders] = useState([]);
+  const [cancelledOrders, setCancelledOrders] = useState([]);
+  const tabMenus = ["All Orders", "Completed", "Cancelled"]; 
 
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);
   };
 
-  const tabMenus = ["All Orders", "Completed", "Cancelled"]; 
+  const fetchOrders = async (statusId = null, setStateCallback) => {
+    let query = supabase
+    .from("orders")
+    .select(`
+      *,
+      sizes(name), 
+      statuses(name),
+      order_toppings(
+        *,
+        toppings(name)
+      )
+    `)
+    .order('created_at', { ascending: false });
+
+    if (statusId !== null) {
+      query = query.eq("status_id", statusId); 
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("error fetching data: ", error);
+    }
+    else {
+      setStateCallback(data); 
+    }
+  }; 
+
 
   useEffect(() => {
-    async function fetchOrders() {
-        let { data, error } = await supabase
-          .from("orders")
-          .select(`
-              *,
-              sizes(
-                name
-              ), 
-              order_toppings(
-                *,
-                toppings(
-                  name
-                )
-              )
-          `);
-
-        if (error) 
-        {
-            console.error(error);
-        } else 
-        {
-            setOrders(data); 
-        }
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+  
+      if (!user) {
+        router.push('/auth/login')
+      } else {
+        fetchOrders(null, setOrders); 
+        fetchOrders(2, setCompletedOrders); 
+        fetchOrders(3, setCancelledOrders); 
+        setLoading(false); 
+      }
     }
-    fetchOrders();
+    checkUser(); 
 }, []);
 
-console.log("orders", orders);
+useOrdersRealtime({
+  fetchOrders,
+  setOrders,
+  setCompletedOrders,
+  setCancelledOrders
+});
+
+const handleLogoutClick = async() => {
+  const result = await handleLogout();
+
+  if (result.success === true ) {
+      router.push(`/auth/login`);
+  }
+  else {
+      console.error("error logging out:", result.message);
+      setError(result.message)
+  }
+};
+
+const handleCompleteClick = async(orderId) => {
+  const { data: user, error } = await supabase.auth.getUser();
+
+  if (error || !user) {
+      console.error("user not authenticated");
+      return;
+  }
+
+  try {
+    const { error } = await supabase 
+      .from("orders")
+      .update({ status_id:2 }) //mark as completed
+      .eq("id", orderId);
+    
+    if (error) {
+      console.error("error updating status: ", error);
+    }
+
+    console.log("successfully updated"); 
+  
+  }
+
+  catch(err){
+    console.error("error updating status: ", err); 
+  }
+}
+
+const handleCancelClick = async(orderId) => {
+  const { data: user, error } = await supabase.auth.getUser();
+
+  if (error || !user) {
+      console.error("user not authenticated");
+      return;
+  }
+
+  try {
+    const { error } = await supabase 
+      .from("orders")
+      .update({ status_id:3 }) //mark as cancelled
+      .eq("id", orderId);
+    
+    if (error) {
+      console.error("error updating status: ", error);
+    }
+
+    console.log("successfully updated"); 
+
+  }
+
+  catch(err){
+    console.error("error updating status: ", err); 
+  }
+}
+
+const orderGroups = {
+  'All Orders': orders,
+  Completed: completedOrders,
+  Cancelled: cancelledOrders
+};
+
+console.log("orders:", orders); 
 
   return (
-    <div className="p-5">
-      <div className="flex flex-row gap-x-1 items-center mb-10">
-            <img
-            src="https://images.unsplash.com/vector-1739809596425-35fa340f2ab0?q=80&w=2960&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            alt="logo"
-            className="h-8"
-            />
-            <p className="font-semibold text-custom-yellow md:text-lg tracking-wide">
-            acai bowl co.
-            </p>
+    loading ? (
+      <div className="flex items-center justify-center h-screen">
+        <svg aria-hidden="true" className="inline w-8 h-8 text-gray-200 animate-spin fill-custom-red" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+          <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+        </svg>
       </div>
-      <p>Logout</p>
+    ) : (
+    <div className="p-5">
+      <div className="flex flex-row justify-between mb-10">
+        <div className="flex flex-row gap-x-1 items-center">
+              <img
+              src="https://images.unsplash.com/vector-1739809596425-35fa340f2ab0?q=80&w=2960&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+              alt="logo"
+              className="h-8"
+              />
+              <p className="font-semibold text-custom-yellow md:text-lg tracking-wide">
+              acai bowl co.
+              </p>
+        </div>
+        <div className="flex flex-row items-center font-semibold cursor-pointer" onClick={handleLogoutClick}>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
+          </svg>
+          <p className="text-sm">Logout</p>
+        </div>
+      </div>
       <div className="mb-4">
         <ul className="flex flex-wrap -mb-px text-sm font-medium text-center">
           {tabMenus.map((tab,index) => (
@@ -76,74 +193,19 @@ console.log("orders", orders);
           ))}
         </ul>
       </div>
-      
-      {/* all orders */}
+
       <div id="default-styled-tab-content">
-        <div className="grid sm:grid-cols-4 grid-cols-1 gap-4 text-sm">
-          {orders.map((order, index) => (
-            <div
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          {orderGroups[activeTab]?.map((order, index) => (
+            <Card
               key={index}
-              className={`p-4 rounded-lg bg-gray-50 ${
-                activeTab === "All Orders" ? "" : "hidden"
-              } flex flex-col h-full`}
-              role="tabpanel"
-            >
-              <div className="flex flex-row justify-between mb-4">
-                <p className="font-semibold text-custom-red">#{order.id}</p>
-                <p className="text-gray-500 text-xs">{order.date}</p>
-              </div>
-              <div className="flex flex-col flex-1 mb-4">
-                <p className="capitalize">{order.sizes.name} Acai Bowl</p>
-                <ul className="list-disc pl-5">
-                  {order.order_toppings?.map((item, index) => (
-                    <li key={index} className="capitalize">{item.toppings.name}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="flex flex-row justify-between mt-auto">
-                <Button 
-                label={order.status_id === 1 ? "Mark as Cancelled" : "Cancelled"}
-                className="text-xs bg-gray-500 hover:bg-gray-600"/>
-                <Button 
-                label={order.status_id === 1 ? "Mark as Completed" : "Completed"}
-                className="text-xs bg-green-700 hover:bg-green-800" />
-              </div>
-            </div>
+              order={order}
+              handleCancelClick={handleCancelClick}
+              handleCompleteClick={handleCompleteClick}
+            />
           ))}
-        </div>
-        
-        {/* to fix in single page UI */}
-        <div
-          className={`p-4 rounded-lg bg-gray-50 ${
-            activeTab === "Completed" ? "" : "hidden"
-          }`}
-          role="tabpanel"
-        >
-          <p className="text-sm text-gray-500">
-            This is some placeholder content for the{" "}
-            <strong className="font-medium text-gray-800">
-              Completed tab's associated content
-            </strong>
-            .
-          </p>
-        </div>
-        
-        {/* to fix in single page UI */}
-        <div
-          className={`p-4 rounded-lg bg-gray-50 ${
-            activeTab === "Cancelled" ? "" : "hidden"
-          }`}
-          role="tabpanel"
-        >
-          <p className="text-sm text-gray-500">
-            This is some placeholder content for the{" "}
-            <strong className="font-medium text-gray-800">
-              Cancelled tab's associated content
-            </strong>
-            .
-          </p>
         </div>
       </div>
     </div>
-  );
+    ));
 }
