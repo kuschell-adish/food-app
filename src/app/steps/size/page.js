@@ -2,17 +2,16 @@
 
 import React, {useState, useEffect} from 'react'; 
 import { supabase } from '@/app/lib/supabaseClient';
+
 import { LuNut } from "react-icons/lu";
 
 export default function Size({selectedSize, setSelectedSize}) {
     const [sizes, setSizes] = useState([]); 
-
     const staticDescriptions = {
         small: 'Perfect for light, healthy snack!',
         medium: 'A satisfying and energizing option!',
         large: 'For the ultimate acai indulgence!',
     };
-
     const staticRecipes = {
         small: [
           'one scoop of acai base',
@@ -35,12 +34,10 @@ export default function Size({selectedSize, setSelectedSize}) {
         async function fetchSizes() {
             let { data, error } = await supabase.from("sizes").select("*");
 
-            if (error) 
-            {
+            if (error) {
                 console.error(error);
             } 
-            else 
-            {
+            else {
                 const sizes = data.map((size) => ({
                     ...size,
                     description: staticDescriptions[size.name],

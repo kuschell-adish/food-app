@@ -1,14 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/app/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
-import Card from '@/app/components/card';
 
+import { supabase } from '@/app/lib/supabaseClient';
+import Card from '@/app/components/card';
 import { handleLogout } from "@/app/api/auth/signOut"; 
 import useOrdersRealtime from '@/app/hooks/ordersRealtime';
 
-export default function Home() {
+import { TbLogout2 } from "react-icons/tb";
+
+export default function Page() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("All Orders");
   const [loading, setLoading] = useState(true)
@@ -16,7 +18,12 @@ export default function Home() {
   const [completedOrders, setCompletedOrders] = useState([]);
   const [cancelledOrders, setCancelledOrders] = useState([]);
   const tabMenus = ["All Orders", "Completed", "Cancelled"]; 
-
+  const orderGroups = {
+    'All Orders': orders,
+    Completed: completedOrders,
+    Cancelled: cancelledOrders
+  };
+  
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);
   };
@@ -49,7 +56,6 @@ export default function Home() {
     }
   }; 
 
-
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -64,88 +70,75 @@ export default function Home() {
       }
     }
     checkUser(); 
-}, []);
+  }, []);
 
-useOrdersRealtime({
-  fetchOrders,
-  setOrders,
-  setCompletedOrders,
-  setCancelledOrders
-});
+  useOrdersRealtime({
+    fetchOrders,
+    setOrders,
+    setCompletedOrders,
+    setCancelledOrders
+  });
 
-const handleLogoutClick = async() => {
-  const result = await handleLogout();
+  const handleLogoutClick = async() => {
+    const result = await handleLogout();
 
-  if (result.success === true ) {
-      router.push(`/auth/login`);
-  }
-  else {
-      console.error("error logging out:", result.message);
-      setError(result.message)
-  }
-};
+    if (result.success === true ) {
+        router.push(`/auth/login`);
+    }
+    else {
+        console.error("error logging out:", result.message);
+        setError(result.message)
+    }
+  };
 
-const handleCompleteClick = async(orderId) => {
-  const { data: user, error } = await supabase.auth.getUser();
+  const handleCompleteClick = async(orderId) => {
+    const { data: user, error } = await supabase.auth.getUser();
 
-  if (error || !user) {
-      console.error("user not authenticated");
-      return;
-  }
-
-  try {
-    const { error } = await supabase 
-      .from("orders")
-      .update({ status_id:2 }) //mark as completed
-      .eq("id", orderId);
-    
-    if (error) {
-      console.error("error updating status: ", error);
+    if (error || !user) {
+        console.error("user not authenticated");
+        return;
     }
 
-    console.log("successfully updated"); 
-  
+    try {
+      const { error } = await supabase 
+        .from("orders")
+        .update({ status_id:2 }) //mark as completed
+        .eq("id", orderId);
+      
+      if (error) {
+        console.error("error updating status: ", error);
+      }
+      console.log("successfully updated"); 
+    }
+    catch(err){
+      console.error("error updating status: ", err); 
+    }
   }
 
-  catch(err){
-    console.error("error updating status: ", err); 
-  }
-}
+  const handleCancelClick = async(orderId) => {
+    const { data: user, error } = await supabase.auth.getUser();
 
-const handleCancelClick = async(orderId) => {
-  const { data: user, error } = await supabase.auth.getUser();
-
-  if (error || !user) {
-      console.error("user not authenticated");
-      return;
-  }
-
-  try {
-    const { error } = await supabase 
-      .from("orders")
-      .update({ status_id:3 }) //mark as cancelled
-      .eq("id", orderId);
-    
-    if (error) {
-      console.error("error updating status: ", error);
+    if (error || !user) {
+        console.error("user not authenticated");
+        return;
     }
 
-    console.log("successfully updated"); 
+    try {
+      const { error } = await supabase 
+        .from("orders")
+        .update({ status_id:3 }) //mark as cancelled
+        .eq("id", orderId);
+      
+      if (error) {
+        console.error("error updating status: ", error);
+      }
+      console.log("successfully updated"); 
+    }
+    catch(err){
+      console.error("error updating status: ", err); 
+    }
+  };
 
-  }
-
-  catch(err){
-    console.error("error updating status: ", err); 
-  }
-}
-
-const orderGroups = {
-  'All Orders': orders,
-  Completed: completedOrders,
-  Cancelled: cancelledOrders
-};
-
-console.log("orders:", orders); 
 
   return (
     loading ? (
@@ -160,25 +153,23 @@ console.log("orders:", orders);
       <div className="flex flex-row justify-between mb-10">
         <div className="flex flex-row gap-x-1 items-center">
               <img
-              src="https://images.unsplash.com/vector-1739809596425-35fa340f2ab0?q=80&w=2960&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-              alt="logo"
-              className="h-8"
+                src="https://images.unsplash.com/vector-1739809596425-35fa340f2ab0?q=80&w=2960&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                alt="logo"
+                className="h-8"
               />
               <p className="font-semibold text-custom-yellow md:text-lg tracking-wide">
-              acai bowl co.
+                acai bowl co.
               </p>
         </div>
         <div className="flex flex-row items-center font-semibold cursor-pointer" onClick={handleLogoutClick}>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
-          </svg>
+          <TbLogout2 className="me-1" />
           <p className="text-sm">Logout</p>
         </div>
       </div>
       <div className="mb-4">
         <ul className="flex flex-wrap -mb-px text-sm font-medium text-center">
           {tabMenus.map((tab,index) => (
-            <li key={index} className="me-2" role="presentation">
+            <li key={index} className="me-2">
             <button
               className={`inline-block p-4 rounded-full ${
                 activeTab === tab
@@ -195,7 +186,7 @@ console.log("orders:", orders);
       </div>
 
       <div id="default-styled-tab-content">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           {orderGroups[activeTab]?.map((order, index) => (
             <Card
               key={index}

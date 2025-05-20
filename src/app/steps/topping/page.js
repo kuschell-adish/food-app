@@ -13,8 +13,8 @@ export default function Topping({toppingsCount, selectedToppings, setSelectedTop
             if (error) 
             {
                 console.error(error);
-            } else 
-            {
+            } 
+            else {
                 setToppings(data); 
             }
         }

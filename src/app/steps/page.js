@@ -3,13 +3,14 @@
 import React, {useState} from 'react'; 
 import { useRouter } from 'next/navigation';
 
+import { supabase } from '../lib/supabaseClient';
 import Stepper from '../components/stepper';
 import Button from '../components/button';
 
 import Size from './size/page';
 import Topping from './topping/page';
 import Order from './order/page';
-import { supabase } from '../lib/supabaseClient';
+
 
 export default function Page() {
 
@@ -18,6 +19,7 @@ export default function Page() {
     const [selectedToppings, setSelectedToppings] = useState([]);
     const [toppingsValue, setToppingsValue] = useState([]);
     const [activeStep, setActiveStep] = useState(1); 
+
     const handleNext = () => {
         setIsNextClicked(true); 
 
@@ -27,6 +29,7 @@ export default function Page() {
         }, 300); 
         
     };
+
     const handlePrevious = () => {
         setIsPreviousClicked(true); 
 
@@ -47,12 +50,9 @@ export default function Page() {
 
     const [isNextClicked, setIsNextClicked] = useState(false); 
     const [isPreviousClicked, setIsPreviousClicked] = useState(false); 
-    const [isConfirmClicked, setIsConfirmClicked] = useState(false); 
 
     const handleConfirm = async(e) => {
         e.preventDefault();
-        setIsConfirmClicked(true); 
-
         try {
             const { data: orderData, error: orderError } = await supabase 
                 .from('orders')
@@ -81,12 +81,10 @@ export default function Page() {
 
             setTimeout(() => {
                 router.push(`/steps/confirm?orderNumber=${orderId}`);
-                setIsConfirmClicked(false); 
             }, 300);
         }
         catch(err) {
             console.error("Error:", err);
-            setIsConfirmClicked(false); 
         }
     }
 

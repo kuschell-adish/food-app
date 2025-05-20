@@ -7,7 +7,7 @@ export async function handleChangePassword(password) {
       if (error) {
         return { success: false, message: error.message };
       }
-
+      
       return { success: true, message: 'password has been changed' };
     }
     catch (error) {

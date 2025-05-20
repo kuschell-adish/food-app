@@ -13,7 +13,7 @@ export default function Order({sizeSelectedName, toppingsSelectedNames, totalPri
                     <img 
                         src='https://images.unsplash.com/photo-1610441009633-b6ca9c6d4be2?q=80&w=2600&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
                         alt="order" 
-                        className={`w-full h-[350px] rounded-t-lg object-cover ${sizeSelectedName === "Medium" && 'transform scale-110'} ${sizeSelectedName === "Large" && 'transform scale-125'}`}
+                        className={`w-full h-[350px] rounded-t-lg object-cover ${sizeSelectedName === "medium" && 'transform scale-110'} ${sizeSelectedName === "large" && 'transform scale-125'}`}
                     />
                 </div>
                 <div className={`p-4`}>
